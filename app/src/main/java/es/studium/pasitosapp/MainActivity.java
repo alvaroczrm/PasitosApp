@@ -2,8 +2,21 @@ package es.studium.pasitosapp;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -11,22 +24,151 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
+    private TextView txtCoordenadas;
+    private LocationManager locManager;
+    private Location loc;
+    Double Longitud=-5.933873333333334;
+    Double Latitud=37.2963866666666;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //finds layout
+        txtCoordenadas= findViewById(R.id.txtCoordenadasValue);
         //Obtenemos el mapa de forma asincrona (notificará cuando este listo)
         SupportMapFragment mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapa);
         mapFragment.getMapAsync((OnMapReadyCallback) this);
-    }
 
+        //GPS
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new
+                    String[]{Manifest.permission.ACCESS_FINE_LOCATION,}, 1000);
+        }
+        else
+        {
+            locationStart();
+        }
+
+
+}
+//GPS
+    private void locationStart() {
+        LocationManager mlocManager = (LocationManager)
+                getSystemService(Context.LOCATION_SERVICE);
+        Localizacion Local = new Localizacion();
+        Local.setMainActivity(this);
+        final boolean gpsEnabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!gpsEnabled)
+        {
+            Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(settingsIntent);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new
+                    String[]{Manifest.permission.ACCESS_FINE_LOCATION,}, 1000);
+            return;
+        }
+        mlocManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0,
+                (LocationListener) Local);
+        mlocManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener)
+                Local);
+        txtCoordenadas.setText("Localización agregada");
+
+
+    }
+    public class Localizacion implements LocationListener
+    {
+        MainActivity mainActivity;
+        public MainActivity getMainActivity()
+        {
+            return mainActivity;
+        }
+        public void setMainActivity(MainActivity mainActivity)
+        {
+            this.mainActivity = mainActivity;
+        }
+        @Override
+        public void onLocationChanged(Location loc)
+        {
+            // Este método se ejecuta cada vez que el GPS recibe nuevas coordenadas
+            // debido a la detección de un cambio de ubicación
+            loc.getLatitude();
+            loc.getLongitude();
+            String Text = "Mi ubicación actual es: " + "\n Latitud = "
+                    + loc.getLatitude() + "\n Longitud = " + loc.getLongitude();
+            Latitud=loc.getLatitude();
+            Longitud=loc.getLongitude();
+            txtCoordenadas.setText("Long "+"\n"+Longitud.toString()+"\n Lat "+"\n" + Latitud.toString());
+            this.mainActivity.setLocation(loc);
+        }
+        @Override
+        public void onProviderDisabled(String provider)
+        {
+            // Este método se ejecuta cuando el GPS es desactivado
+            txtCoordenadas.setText("GPS Desactivado");
+        }
+        @Override
+        public void onProviderEnabled(String provider)
+        {
+            // Este método se ejecuta cuando el GPS es activado
+            txtCoordenadas.setText("GPS Activado");
+        }
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras)
+        {
+            switch (status)
+            {
+                case 0:
+                    Log.d("debug", "LocationProvider.OUT_OF_SERVICE");
+                    break;
+                case 1:
+                    Log.d("debug", "LocationProvider.TEMPORARILY_UNAVAILABLE");
+                    break;
+                case 2:
+                    Log.d("debug", "LocationProvider.AVAILABLE");
+                    break;
+            }
+        }
+    }
+    public void setLocation(Location loc)
+    {
+        //Obtener la dirección de la calle a partir de la latitud y la longitud
+        if (loc.getLatitude() != 0.0 && loc.getLongitude() != 0.0)
+        {
+            try
+            {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> list = geocoder.getFromLocation(
+                        loc.getLatitude(), loc.getLongitude(), 1);
+                if (!list.isEmpty())
+                {
+                    Address DirCalle = list.get(0);
+
+                }
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+//GOOGLE MAPS
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         GoogleMap mapa = googleMap;
-        LatLng myUbi = new LatLng(37.3968071742616, -5.972389626774901);// ubicacion acutal
+        LatLng myUbi = new LatLng(Latitud, Longitud);// ubicacion acutal
         mapa.moveCamera(CameraUpdateFactory.newLatLng(myUbi));//situa la camara
     }
 }
