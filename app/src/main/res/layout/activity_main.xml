@@ -47,6 +47,7 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         android:textSize="11dp"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="@+id/imageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.304"
@@ -78,5 +79,17 @@
         app:layout_constraintStart_toEndOf="@+id/txtBateria"
         app:layout_constraintTop_toTopOf="@+id/txtBateria"
         app:srcCompat="@drawable/ic_baseline_battery_5_bar_24" />
+
+    <TextView
+        android:id="@+id/BatLvl"
+        android:layout_width="33dp"
+        android:layout_height="20dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView"
+        app:layout_constraintVertical_bias="0.956" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

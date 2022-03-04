@@ -7,16 +7,21 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,6 +36,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
     private TextView txtCoordenadas;
+    private TextView BatLvl;
     private LocationManager locManager;
     private Location loc;
     Double Longitud=-5.933873333333334;
@@ -38,15 +44,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //desactiva la rotacion
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //finds layout
         txtCoordenadas= findViewById(R.id.txtCoordenadasValue);
+        BatLvl = findViewById(R.id.BatLvl);
         //Obtenemos el mapa de forma asincrona (notificará cuando este listo)
         SupportMapFragment mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapa);
         mapFragment.getMapAsync((OnMapReadyCallback) this);
 
+        //Lanza hilo
+        new Thread(new Task()).start();
         //GPS
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
@@ -59,8 +69,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationStart();
         }
 
-
+       // Bateria();
 }
+//HILO
+    class Task implements Runnable{
+
+    @Override
+    public void run() {
+        for (int i = 0; i <= 100; i++){
+            BatLvl.setText(i+"");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
 //GPS
     private void locationStart() {
         LocationManager mlocManager = (LocationManager)
@@ -111,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Latitud=loc.getLatitude();
             Longitud=loc.getLongitude();
             txtCoordenadas.setText("Long "+"\n"+Longitud.toString()+"\n Lat "+"\n" + Latitud.toString());
+
             this.mainActivity.setLocation(loc);
         }
         @Override
@@ -170,5 +197,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleMap mapa = googleMap;
         LatLng myUbi = new LatLng(Latitud, Longitud);// ubicacion acutal
         mapa.moveCamera(CameraUpdateFactory.newLatLng(myUbi));//situa la camara
+
+    }
+//Bateria
+    public void Bateria(){
+        BatteryManager bm = (BatteryManager) this.getSystemService(BATTERY_SERVICE);
+        int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        BatLvl.setText((batLevel+"")+"%");
     }
 }
