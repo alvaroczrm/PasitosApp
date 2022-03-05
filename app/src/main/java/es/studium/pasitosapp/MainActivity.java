@@ -27,7 +27,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
+    GoogleMap mapa;
     private TextView txtCoordenadas;
     private TextView BatLvl;
     private LocationManager locManager;
@@ -54,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Obtenemos el mapa de forma asincrona (notificará cuando este listo)
         SupportMapFragment mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapa);
         mapFragment.getMapAsync((OnMapReadyCallback) this);
-
+       // marcadores(mapa);
         //Lanza hilo
         new Thread(new Task()).start();
         //GPS
@@ -69,17 +72,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationStart();
         }
 
-       // Bateria();
+       Bateria();
 }
 //HILO
     class Task implements Runnable{
 
     @Override
     public void run() {
+        Looper.prepare();
         for (int i = 0; i <= 100; i++){
-            BatLvl.setText(i+"");
+            Bateria();
+            new Localizacion(); //hilo no puede interactuar con la view
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     + loc.getLatitude() + "\n Longitud = " + loc.getLongitude();
             Latitud=loc.getLatitude();
             Longitud=loc.getLongitude();
-            txtCoordenadas.setText("Long "+"\n"+Longitud.toString()+"\n Lat "+"\n" + Latitud.toString());
+            txtCoordenadas.setText("Longitud "+"\n"+Longitud.toString()+"\n Latitud "+"\n" + Latitud.toString());
 
             this.mainActivity.setLocation(loc);
         }
@@ -194,10 +199,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //GOOGLE MAPS
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        GoogleMap mapa = googleMap;
+        mapa = googleMap;
         LatLng myUbi = new LatLng(Latitud, Longitud);// ubicacion acutal
         mapa.moveCamera(CameraUpdateFactory.newLatLng(myUbi));//situa la camara
 
+    }
+    public void marcadores(GoogleMap mapa){
+        LatLng CorMarcador = new LatLng(Latitud, Longitud);
+
+        mapa.addMarker(new MarkerOptions()
+                .position(CorMarcador)
+                .title(Latitud+" "+Longitud)
+                .snippet(BatLvl+"")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(android.R.drawable.ic_menu_compass))
+                .anchor(0.5f, 0.5f));
     }
 //Bateria
     public void Bateria(){
