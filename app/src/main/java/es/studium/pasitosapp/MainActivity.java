@@ -16,6 +16,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
@@ -57,9 +58,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Obtenemos el mapa de forma asincrona (notificará cuando este listo)
         SupportMapFragment mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapa);
         mapFragment.getMapAsync((OnMapReadyCallback) this);
-       // marcadores(mapa);
+
         //Lanza hilo
-        new Thread(new Task()).start();
+       // new Thread(new Task()).start();
+        hilo();
         //GPS
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
@@ -75,14 +77,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
        Bateria();
 }
 //HILO
+   /*
     class Task implements Runnable{
-
     @Override
     public void run() {
         Looper.prepare();
         for (int i = 0; i <= 100; i++){
             Bateria();
             new Localizacion(); //hilo no puede interactuar con la view
+            if (i>2){
+                marcadores(mapa);
+            }
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -91,7 +96,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 }
-
+*/
+public void hilo(){
+    final Handler handler = new Handler();
+    handler.postDelayed(new Runnable(){
+        @Override
+        public void run() {
+            locationStart();
+            Bateria();
+            marcadores(mapa);
+            handler.postDelayed(this, 10000);
+        }
+    }, 10000);
+}
 //GPS
     private void locationStart() {
         LocationManager mlocManager = (LocationManager)
@@ -212,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .title(Latitud+" "+Longitud)
                 .snippet(BatLvl+"")
                 .icon(BitmapDescriptorFactory
-                        .fromResource(android.R.drawable.ic_menu_compass))
+                        .fromResource(android.R.drawable.presence_online))
                 .anchor(0.5f, 0.5f));
     }
 //Bateria
