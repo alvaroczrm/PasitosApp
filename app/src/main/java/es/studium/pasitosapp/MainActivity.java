@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -20,12 +19,9 @@ import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,13 +39,14 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
     GoogleMap mapa;
     private TextView txtCoordenadas;
-    int batLevel;
+    int batLevel=0;
     private TextView BatLvl;
     private LocationManager locManager;
     private Location loc;
     Double Longitud=-5.933873333333334;
     Double Latitud=37.2963866666666;
-    private SQLiteOpenHelper AyudanteBaseDeDatos;
+    AyudanteBaseDeDatos ayudanteBaseDeDatos = new AyudanteBaseDeDatos(this);
+
 
 
     @Override
@@ -246,13 +243,15 @@ public void hilo(){
         BatLvl.setText((batLevel+"")+"%");
     }
 //SQLITE
+
+
     public long sql(){
     //Se usa writable por ser un insert
-        SQLiteDatabase baseDeDatos = AyudanteBaseDeDatos.getWritableDatabase();
+        SQLiteDatabase baseDeDatos = ayudanteBaseDeDatos.getWritableDatabase();
         ContentValues valoresParaInsertar = new ContentValues();
         valoresParaInsertar.put("latitud", Latitud);
         valoresParaInsertar.put("longitud", Longitud);
         valoresParaInsertar.put("bateria", batLevel);
-        return baseDeDatos.insert("pasitos_app",null,valoresParaInsertar);
+        return baseDeDatos.insert("coordenadas_bat",null,valoresParaInsertar);
     }
 }
