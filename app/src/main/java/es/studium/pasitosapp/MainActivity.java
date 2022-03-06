@@ -5,10 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -40,11 +43,14 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback {
     GoogleMap mapa;
     private TextView txtCoordenadas;
+    int batLevel;
     private TextView BatLvl;
     private LocationManager locManager;
     private Location loc;
     Double Longitud=-5.933873333333334;
     Double Latitud=37.2963866666666;
+    private SQLiteOpenHelper AyudanteBaseDeDatos;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +111,7 @@ public void hilo(){
             locationStart();
             Bateria();
             marcadores(mapa);
+            sql();
             handler.postDelayed(this, 10000);
         }
     }, 10000);
@@ -235,7 +242,17 @@ public void hilo(){
 //Bateria
     public void Bateria(){
         BatteryManager bm = (BatteryManager) this.getSystemService(BATTERY_SERVICE);
-        int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         BatLvl.setText((batLevel+"")+"%");
+    }
+//SQLITE
+    public long sql(){
+    //Se usa writable por ser un insert
+        SQLiteDatabase baseDeDatos = AyudanteBaseDeDatos.getWritableDatabase();
+        ContentValues valoresParaInsertar = new ContentValues();
+        valoresParaInsertar.put("latitud", Latitud);
+        valoresParaInsertar.put("longitud", Longitud);
+        valoresParaInsertar.put("bateria", batLevel);
+        return baseDeDatos.insert("pasitos_app",null,valoresParaInsertar);
     }
 }
